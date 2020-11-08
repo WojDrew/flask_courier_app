@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>KurierPol</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
     <div class="grid-container">
@@ -16,10 +17,10 @@
         <div style="min-height: 600px">
             {% if current_user.is_anonymous %}
                 <a class="button" href="/login">Zaloguj</a>
+                <a class="button" href="/register">Zarejestruj sie</a>
             {% else%}
                 <a class="button" href="/logout">Wyloguj</a>
             {% endif %}
-            <a class="button" href="/register">Zarejestruj sie</a>
         </div>
         <div style="min-height: 600px">
             {% block content %}{% endblock %}
@@ -27,7 +28,7 @@
                 {% if messages %}
                     <ul>
                     {% for message in messages %}
-                        <li>{{ message }}</li>
+                        <li><b>{{ message }}</b></li>
                     {% endfor %}
                     </ul>
                 {% endif %}

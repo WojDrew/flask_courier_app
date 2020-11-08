@@ -1,0 +1,5 @@
+<a class="button" href="/zamow">Zloz zamowienie</a>
+<h3>Twoje zamowienia:</h3>
+{% for zamowienie in current_user.zamowienia %}
+    <p>{{ zamowienie.adresDostawcy }}</p>
+{% endfor %}

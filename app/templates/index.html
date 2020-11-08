@@ -1,5 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h2>Witaj w KurierPol</h2>
+    <h2>Witaj w KurierPol
+    {% if current_user.is_authenticated %}
+        {{ current_user.imie  + ' ' + current_user.nazwisko}}
+    {% endif %}
+    </h2>
+    {% if current_user.is_authenticated and current_user.type == 'klient' %}
+        {% include 'client_view.html' %}
+    {% elif current_user.is_authenticated and current_user.type == 'kurier' %}
+        {%include 'courier_view.html' %}
+    {% endif %}
 {% endblock %}
