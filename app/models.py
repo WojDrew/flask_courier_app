@@ -1,7 +1,15 @@
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
+
 from app import db
+from app import login
 
 
-class Osoba(db.Model):
+@login.user_loader
+def load_user(id):
+    return Osoba.query.get(int(id))
+
+class Osoba(UserMixin, db.Model):
     __tablename__ = 'osoba'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -17,7 +25,11 @@ class Osoba(db.Model):
         'polymorphic_identity':'osoba',
         'polymorphic_on':type
     }
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
 
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
 
 class Klient(Osoba):
     __tablename__ = 'klient'

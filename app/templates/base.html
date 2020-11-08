@@ -1,53 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-    <style>
-        .grid-container {
-            display: grid;
-            justify-content: center;
-            grid-template-columns: 200px 800px ;
-            grid-template-rows: 100px auto ;
-            grid-gap: 10px;
-            background-color: #379683;
-            padding: 10px;
-        }
-
-        .grid-container > div {
-            background-color: #5cdb95;
-            text-align: center;
-            padding: 10px 0;
-            font-size: 20px;
-            color: #05386b;
-        }
-        .button {
-            width: 100px;
-            background-color: #379683;
-            color: #05386b;
-            border: none;
-            padding: 15px 35px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-        }
-</style>
+    <title>KurierPol</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
 </head>
 <body>
     <div class="grid-container">
         <div></div>
         <div>
-            <h1>KURIERPOL</h1>
+            <a href="/index" style="text-decoration: none; color: #05386b;">
+                <h1>KURIERPOL</h1>
+            </a>
         </div>
         <div style="min-height: 600px">
-            <a class="button" href="/login">Zaloguj</a>
+            {% if current_user.is_anonymous %}
+                <a class="button" href="/login">Zaloguj</a>
+            {% else%}
+                <a class="button" href="/logout">Wyloguj</a>
+            {% endif %}
             <a class="button" href="/register">Zarejestruj sie</a>
         </div>
         <div style="min-height: 600px">
             {% block content %}{% endblock %}
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
         </div>
     </div>
 
