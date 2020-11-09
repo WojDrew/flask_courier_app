@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <p>Zamowienie nr {{ zamowienie.idZamowienie }}</p>
+
+    <p style="text-align: left; padding: 0px 20px;"><b>Adres odbiorcy:</b> {{ zamowienie.adresDostawcy }}</p>
+    <p style="text-align: left; padding: 0px 20px;"><b>Adres nadawcy:</b> {{ zamowienie.adresNadawcy }}</p>
+    <p style="text-align: left; padding: 0px 20px;"><b>Calkowity koszt:</b> {{ zamowienie.calkowityKosztDostawy }}</p>
+    <p style="text-align: left; padding: 0px 20px;"><b>Data dostawy:</b> {{ zamowienie.dataDostawy }}</p>
+    <p style="text-align: left; padding: 0px 20px;"><b>Data zaplaty:</b>
+        {{ zamowienie.dataZaplaty if zamowienie.dataZaplaty is not none else 'Nie zaplacono' }}
+    </p>
+    <form action="" method="post" style="padding: 0px 20px; text-align: left">
+        {{ dateTimeForm.hidden_tag() }}
+        <p>
+            <b>{{ dateTimeForm.godzinaDostawy.label }}</b>
+            {{ dateTimeForm.godzinaDostawy(size=30,
+            value=zamowienie.przewidywanaGodzinaDostawy.time() if zamowienie.przewidywanaGodzinaDostawy is not none else '')}}
+            {{ dateTimeForm.submit()}}
+        </p>
+    </form>
+    <p style="text-align: left; padding: 0px 20px;">
+        <b>Zrealizowane:</b> {{ 'Tak' if zamowienie.zrealizowana else 'Nie' }}
+    </p>
+    <p style="text-align: left; padding: 0px 20px;">
+        <b>Paczki:</b>
+    </p>
+    {% for paczka in zamowienie.paczki %}
+        <p style="text-align: left; padding: 0px 40px;">
+            <b>Paczka nr</b> {{ loop.index }}: <b>Waga:</b> {{ paczka.waga }} <b>Kod:</b> {{ paczka.kod if paczka.kod is not none else 'Brak' }}
+            <b>Data odbioru:</b> {{ paczka.dataOdbioru if paczka.dataOdbioru is not none else 'Paczka nie zostala jeszcze odebrana' }}
+            <b>Stan paczki:</b> {{ paczka.stanPaczki }}
+        </p>
+    {% endfor %}
+    {% if not zamowienie.zrealizowana %}
+        <form action="" method="post" style="padding: 0px 20px; text-align: left">
+            {{ finalizeForm.hidden_tag() }}
+            {{ finalizeForm.submit() }}
+        </form>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,4 @@
+<h3>Twoje zamowienia:</h3>
+{% for zamowienie in current_user.zamowienia %}
+    <p><a class="button" href="/zamowienie_kurier?id={{ zamowienie.idZamowienie }}">Zamowienie {{ zamowienie.idZamowienie }}</a></p>
+{% endfor %}

@@ -1,5 +1,6 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from sqlalchemy import func
 
 from app import db
 from app import login
@@ -54,6 +55,12 @@ class Kurier(Osoba):
         'polymorphic_identity':'kurier',
     }
 
+    @staticmethod
+    def find_free_courier():
+        kurier = db.session.query(Kurier.id).outerjoin(Zamowienie).order_by(
+            func.count(Zamowienie.idZamowienie)).group_by(Kurier.id).first()
+        return Kurier.query.get(kurier.id)
+
 
 class Zamowienie(db.Model):
     __tablename__ = 'zamowienie'
@@ -69,6 +76,12 @@ class Zamowienie(db.Model):
     przewidywanaGodzinaDostawy = db.Column(db.DateTime)
     zrealizowana = db.Column(db.Boolean)
     paczki = db.relationship("Paczka", backref="zamowienie", lazy="dynamic")
+
+    def dodajPaczke(self, paczka):
+        if self.calkowityKosztDostawy is None:
+            self.calkowityKosztDostawy = 0
+        self.calkowityKosztDostawy = self.calkowityKosztDostawy + paczka.waga * 4.5
+        self.paczki.append(paczka)
 
 
 class StanPaczki(db.Model):
