@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, FieldList
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, FieldList, RadioField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
-from wtforms.fields.html5 import DateField
+from wtforms.fields.html5 import TimeField, DateField
 
 from datetime import date
 
@@ -42,9 +42,9 @@ class LoginForm(FlaskForm):
 
 
 class OrderTakeForm(FlaskForm):
-    adresNadawcy = StringField('Adres Nadawcy', validators=[DataRequired()])
-    adresOdbiorcy = StringField('Adres Odbiorcy', validators=[DataRequired()])
-    dataDostawy = DateField('Data Dostawy', validators=[DataRequired()])
+    adresNadawcy = StringField('Adres nadawcy:', validators=[DataRequired()])
+    adresOdbiorcy = StringField('Adres odbiorcy:', validators=[DataRequired()])
+    dataDostawy = DateField('Data dostawy:', validators=[DataRequired()])
     paczki = FieldList(StringField(), 'Paczki:')
     submit = SubmitField('Zloz')
 
@@ -52,3 +52,30 @@ class OrderTakeForm(FlaskForm):
         if data.data < date.today():
             raise ValidationError('Data podana musi byc poxniejsza niz dzisiejsza')
 
+
+class OrderFormSenderAddress(FlaskForm):
+    adresNadawcy = StringField('Adres nadawcy:', validators=[DataRequired()])
+    submit = SubmitField('Zmien')
+
+
+class OrderFormRecipientAddress(FlaskForm):
+    adresOdbiorcy = StringField('Adres odbiorcy:', validators=[DataRequired()])
+    submit = SubmitField('Zmien')
+
+
+class OrderFormDate(FlaskForm):
+    dataDostawy = DateField('Data dostawy:', validators=[DataRequired()])
+    submit = SubmitField('Zmien')
+
+    def validate_dataDostawy(self, data):
+        if data.data < date.today():
+            raise ValidationError('Data podana musi byc poxniejsza niz dzisiejsza')
+
+
+class OrderFormDateTime(FlaskForm):
+    godzinaDostawy = TimeField('Przewidywana godzina dostawy:', validators=[DataRequired()])
+    submit = SubmitField('Zmien')
+
+
+class FinalizeOrderForm(FlaskForm):
+    submit = SubmitField("Sfinalizuj")

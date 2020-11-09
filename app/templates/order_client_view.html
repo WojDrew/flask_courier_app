@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <p>Zamowienie nr {{ zamowienie.idZamowienie }}</p>
+
+    <form action="" method="post" style="padding: 0px 20px; text-align: left">
+        {{ recipientForm.hidden_tag() }}
+        <p>
+            <b>{{ recipientForm.adresOdbiorcy.label }}</b>
+            {{ recipientForm.adresOdbiorcy(size=30, value=zamowienie.adresDostawcy)}}
+            {{ recipientForm.submit()}}
+        </p>
+    </form>
+    <form action="" method="post" style="padding: 0px 20px; text-align: left">
+        {{ senderForm.hidden_tag() }}
+        <p>
+            <b>{{ senderForm.adresNadawcy.label }}</b>
+            {{ senderForm.adresNadawcy(size=30, value=zamowienie.adresNadawcy)}}
+            {{ senderForm.submit()}}
+        </p>
+    </form>
+    <p style="text-align: left; padding: 0px 20px;"><b>Calkowity koszt:</b> {{ zamowienie.calkowityKosztDostawy }}</p>
+    <form action="" method="post" style="padding: 0px 20px; text-align: left">
+        {{ dateForm.hidden_tag() }}
+        <p>
+            <b>{{ dateForm.dataDostawy.label }}</b>
+            {{ dateForm.dataDostawy(size=30, value=zamowienie.dataDostawy)}}
+            {{ dateForm.submit()}}
+        </p>
+    </form>
+    <p style="text-align: left; padding: 0px 20px;"><b>Data zaplaty:</b>
+        {{ zamowienie.dataZaplaty if zamowienie.dataZaplaty is not none else 'Nie zaplacono' }}
+    </p>
+    <p style="text-align: left; padding: 0px 20px;"><b>Przewidywana godzina dostawy:</b>
+        {{ zamowienie.przewidywanaGodzinaDostawy.time() if zamowienie.przewidywanaGodzinaDostawy is not none else 'Kurier nie
+        podal jeszcze przewidywanej godziny dostawy' }}
+    </p>
+    <p style="text-align: left; padding: 0px 20px;">
+        <b>Zrealizowane:</b> {{ 'Tak' if zamowienie.zrealizowana else 'Nie' }}
+    </p>
+    <p style="text-align: left; padding: 0px 20px;">
+        <b>Paczki:</b>
+    </p>
+    {% for paczka in zamowienie.paczki %}
+        <p style="text-align: left; padding: 0px 40px;">
+            <b>Paczka nr</b> {{ loop.index }}: <b>Waga:</b> {{ paczka.waga }} <b>Kod:</b> {{ paczka.kod if paczka.kod is not none else 'Brak' }}
+            <b>Data odbioru:</b> {{ paczka.dataOdbioru if paczka.dataOdbioru is not none else 'Paczka nie zostala jeszcze odebrana' }}
+            <b>Stan paczki:</b> {{ paczka.stanPaczki }}
+        </p>
+    {% endfor %}
+{% endblock %}

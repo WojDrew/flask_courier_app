@@ -58,7 +58,7 @@ class Kurier(Osoba):
     @staticmethod
     def find_free_courier():
         kurier = db.session.query(Kurier.id).outerjoin(Zamowienie).order_by(
-            func.count(Zamowienie.idZamowienie).desc()).group_by(Kurier.id).first()
+            func.count(Zamowienie.idZamowienie)).group_by(Kurier.id).first()
         return Kurier.query.get(kurier.id)
 
 

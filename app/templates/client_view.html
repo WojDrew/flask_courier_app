@@ -1,5 +1,5 @@
 <a class="button" href="/zamow">Zloz zamowienie</a>
 <h3>Twoje zamowienia:</h3>
 {% for zamowienie in current_user.zamowienia %}
-    <p>{{ zamowienie.adresDostawcy }}</p>
+    <p><a class="button" href="/zamowienie?id={{ zamowienie.idZamowienie }}">Zamowienie {{ zamowienie.idZamowienie }}</a></p>
 {% endfor %}

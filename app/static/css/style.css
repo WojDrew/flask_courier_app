@@ -28,3 +28,7 @@
     cursor: pointer;
     text-decoration: none;
 }
+
+.button:hover{
+    background-color: #71968f;
+}
