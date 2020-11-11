@@ -1,9 +1,12 @@
+import datetime
+
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from sqlalchemy import func
 
-from app import db
-from app import login
+from threading import Lock
+
+from app import db, login, enums
 
 
 @login.user_loader
@@ -62,6 +65,18 @@ class Kurier(Osoba):
         return Kurier.query.get(kurier.id)
 
 
+class NumerZamowienia(db.Model):
+    __tablename__ = 'numerZamowienia'
+
+    numerZamowienia = db.Column(db.Integer, primary_key=True)
+
+
+class NumerPaczki(db.Model):
+    __tablename__ = 'numerPaczki'
+
+    numerPaczki = db.Column(db.Integer, primary_key=True)
+
+
 class Zamowienie(db.Model):
     __tablename__ = 'zamowienie'
 
@@ -76,12 +91,33 @@ class Zamowienie(db.Model):
     przewidywanaGodzinaDostawy = db.Column(db.DateTime)
     zrealizowana = db.Column(db.Boolean)
     paczki = db.relationship("Paczka", backref="zamowienie", lazy="dynamic")
+    LOCK = Lock()
 
-    def dodajPaczke(self, paczka):
+    def dodajPaczke(self, package):
         if self.calkowityKosztDostawy is None:
             self.calkowityKosztDostawy = 0
-        self.calkowityKosztDostawy = self.calkowityKosztDostawy + paczka.waga * 4.5
-        self.paczki.append(paczka)
+        self.calkowityKosztDostawy = self.calkowityKosztDostawy + package.waga * 4.5
+        package.zmienStatus(enums.PackageState.U_nadawcy)
+        package.setCode()
+        self.paczki.append(package)
+
+    def ustawPrzewidywanaGodzineDostawyiPowiadom(self, time):
+        self.przewidywanaGodzinaDostawy = datetime.datetime.combine(self.dataDostawy, time)
+
+    def sfinalizuj(self):
+        for package in self.paczki:
+            package.zmienStatus(enums.PackageState.Dostarczone)
+        self.zrealizowana = True
+
+    @staticmethod
+    def getOrderNum():
+        with Zamowienie.LOCK:
+            orderNum = NumerZamowienia.query.first()
+            num = orderNum.numerZamowienia
+            orderNum.numerZamowienia = num + 1
+            db.session.add(orderNum)
+            db.session.commit()
+            return num
 
 
 class StanPaczki(db.Model):
@@ -100,3 +136,19 @@ class Paczka(db.Model):
     kod = db.Column(db.String(128))
     waga = db.Column(db.Float(8))
     stanPaczki = db.Column(db.Integer, db.ForeignKey(StanPaczki.stanPaczki))
+    LOCK = Lock()
+
+    def zmienStatus(self, state):
+        self.stanPaczki = state.value
+
+    def setCode(self):
+        self.kod = str(self.getPackageCode())
+
+    def getPackageCode(self):
+        with Paczka.LOCK:
+            packageCode = NumerPaczki.query.first()
+            code = packageCode.numerPaczki
+            packageCode.numerPaczki = code + 1
+            db.session.add(packageCode)
+            db.session.commit()
+            return code
