@@ -8,8 +8,6 @@ from app import db
 from app.forms import *
 from app.models import *
 
-import datetime
-
 
 @app_instance.route('/')
 @app_instance.route('/index')
@@ -22,20 +20,20 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         if form.isKurier.data:
-            osoba = Kurier(eMail=form.email.data,
+            user = Kurier(eMail=form.email.data,
                            imie=form.imie.data,
                            nazwisko=form.nazwisko.data,
                            nrTelefonu=form.nrTelefonu.data,
                            PESEL=form.pesel.data)
         else:
-            osoba = Klient(eMail=form.email.data,
+            user = Klient(eMail=form.email.data,
                            imie=form.imie.data,
                            nazwisko=form.nazwisko.data,
                            nrTelefonu=form.nrTelefonu.data,
                            PESEL=form.pesel.data,
                            adres=form.adres.data)
-        osoba.set_password(form.password.data)
-        db.session.add(osoba)
+        user.set_password(form.password.data)
+        db.session.add(user)
         db.session.commit()
         flash("Rejestracja zakonczyla sie powodzeniem")
         return redirect(url_for('login'))
@@ -48,11 +46,11 @@ def login():
         return redirect(url_for('index'))
     form = LoginForm()
     if form.validate_on_submit():
-        osoba = Osoba.query.filter_by(eMail=form.email.data).first()
-        if osoba is None or not osoba.check_password(form.password.data):
+        user = Osoba.query.filter_by(eMail=form.email.data).first()
+        if user is None or not user.check_password(form.password.data):
             flash('Niepoprawne email lub haslo')
             return redirect(url_for('login'))
-        login_user(osoba, remember=form.remember_me.data)
+        login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('index')
@@ -71,18 +69,18 @@ def make_order():
     if current_user.is_authenticated:
         form = OrderTakeForm()
         if form.validate_on_submit():
-            if not len(form.paczki.data) > 0:
+            if not len(form.packages.data) > 0:
                 flash("Zamowienie musi skladac sie z przynajmniej jednej paczki")
                 return redirect(url_for('make_order'))
-            kurier = Kurier.find_free_courier()
-            zamowienie = Zamowienie(klient=current_user, kurier=kurier, adresDostawcy=form.adresOdbiorcy.data,
-                                    adresNadawcy=form.adresNadawcy.data, dataDostawy=form.dataDostawy.data,
-                                    zrealizowana=False)
-            for waga in form.paczki.data:
-                zamowienie.dodajPaczke(Paczka(waga=float(waga)))
-            db.session.add(zamowienie)
+            courier = Kurier.find_free_courier()
+            order = Zamowienie(idZamowienie=Zamowienie.getOrderNum(), klient=current_user, kurier=courier,
+                               adresDostawcy=form.recipientAddress.data,adresNadawcy=form.senderAddress.data,
+                               dataDostawy=form.deliveryDate.data, zrealizowana=False)
+            for weight in form.packages.data:
+                order.dodajPaczke(Paczka(waga=float(weight)))
+            db.session.add(order)
             db.session.commit()
-            flash("Zamowienie za kwote {} zostalo zlozone".format(zamowienie.calkowityKosztDostawy))
+            flash("Zamowienie za kwote {} zostalo zlozone".format(order.calkowityKosztDostawy))
             return redirect(url_for('index'))
         return render_template('take_order.html', title='Zloz Zamowienie', form=form)
     else:
@@ -97,8 +95,8 @@ def order_view_client():
     elif isinstance(current_user, Kurier):
         return redirect(url_for('order_view_courier', id=request.args.get('id')))
 
-    zamowienie = Zamowienie.query.filter_by(idZamowienie=request.args.get('id')).first()
-    if zamowienie is None or not zamowienie in current_user.zamowienia:
+    order = Zamowienie.query.filter_by(idZamowienie=request.args.get('id')).first()
+    if order is None or not order in current_user.zamowienia:
         flash("Brak zamowienia")
         return redirect(url_for('index'))
 
@@ -107,22 +105,22 @@ def order_view_client():
     dateForm = OrderFormDate()
 
     if senderForm.validate_on_submit():
-        zamowienie.adresNadawcy = senderForm.adresNadawcy.data
-        db.session.add(zamowienie)
+        order.adresNadawcy = senderForm.senderAddress.data
+        db.session.add(order)
         db.session.commit()
 
     if recipientForm.validate_on_submit():
-        zamowienie.adresDostawcy = recipientForm.adresOdbiorcy.data
-        db.session.add(zamowienie)
+        order.adresDostawcy = recipientForm.recipientAddress.data
+        db.session.add(order)
         db.session.commit()
 
     if dateForm.validate_on_submit():
-        zamowienie.dataDostawy = dateForm.dataDostawy.data
-        db.session.add(zamowienie)
+        order.dataDostawy = dateForm.deliveryDate.data
+        db.session.add(order)
         db.session.commit()
 
-    return render_template('order_client_view.html', zamowienie=zamowienie, recipientForm=recipientForm,
-                           senderForm=senderForm, dateForm=dateForm)
+    return render_template('order_client_view.html', order=order, recipientForm=recipientForm,
+                           senderForm=senderForm, dateForm=dateForm, stateEnum=enums.PackageState)
 
 
 @app_instance.route('/zamowienie_kurier', methods=['GET', 'POST'])
@@ -134,23 +132,24 @@ def order_view_courier():
     elif isinstance(current_user, Klient):
         return redirect(url_for('order_view_client', id=request.args.get('id')))
 
-    zamowienie = Zamowienie.query.filter_by(idZamowienie=request.args.get('id')).first()
-    if zamowienie is None or not zamowienie in current_user.zamowienia:
+    order = Zamowienie.query.filter_by(idZamowienie=request.args.get('id')).first()
+    if order is None or not order in current_user.zamowienia:
         flash("Brak zamowienia")
         return redirect(url_for('index'))
 
-    dateTimeForm = OrderFormDateTime()
+    timeForm = OrderFormTime()
     finalizeForm = FinalizeOrderForm()
 
-    if dateTimeForm.validate_on_submit():
-        zamowienie.przewidywanaGodzinaDostawy = datetime.datetime.combine(zamowienie.dataDostawy,
-                                                                          dateTimeForm.godzinaDostawy.data)
-        db.session.add(zamowienie)
+    if timeForm.validate_on_submit():
+        order.ustawPrzewidywanaGodzineDostawyiPowiadom(timeForm.deliveryTime.data)
+        db.session.add(order)
         db.session.commit()
 
     if finalizeForm.validate_on_submit():
-        zamowienie.zrealizowana = True
-        db.session.add(zamowienie)
-        db.session.commit()
+        if finalizeForm.finalized.data == 'y':
+            order.sfinalizuj()
+            db.session.add(order)
+            db.session.commit()
 
-    return render_template('order_courier_view.html', zamowienie=zamowienie, dateTimeForm=dateTimeForm, finalizeForm=finalizeForm)
+    return render_template('order_courier_view.html', order=order, timeForm=timeForm, finalizeForm=finalizeForm,
+                           stateEnum=enums.PackageState)

@@ -1,40 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <p>Zamowienie nr {{ zamowienie.idZamowienie }}</p>
+    <p>Zamowienie nr {{ order.idZamowienie }}</p>
 
-    <p style="text-align: left; padding: 0px 20px;"><b>Adres odbiorcy:</b> {{ zamowienie.adresDostawcy }}</p>
-    <p style="text-align: left; padding: 0px 20px;"><b>Adres nadawcy:</b> {{ zamowienie.adresNadawcy }}</p>
-    <p style="text-align: left; padding: 0px 20px;"><b>Calkowity koszt:</b> {{ zamowienie.calkowityKosztDostawy }}</p>
-    <p style="text-align: left; padding: 0px 20px;"><b>Data dostawy:</b> {{ zamowienie.dataDostawy }}</p>
+    <p style="text-align: left; padding: 0px 20px;"><b>Adres odbiorcy:</b> {{ order.adresDostawcy }}</p>
+    <p style="text-align: left; padding: 0px 20px;"><b>Adres nadawcy:</b> {{ order.adresNadawcy }}</p>
+    <p style="text-align: left; padding: 0px 20px;"><b>Calkowity koszt:</b> {{ order.calkowityKosztDostawy }}</p>
+    <p style="text-align: left; padding: 0px 20px;"><b>Data dostawy:</b> {{ order.dataDostawy }}</p>
     <p style="text-align: left; padding: 0px 20px;"><b>Data zaplaty:</b>
-        {{ zamowienie.dataZaplaty if zamowienie.dataZaplaty is not none else 'Nie zaplacono' }}
+        {{ order.dataZaplaty if order.dataZaplaty is not none else 'Nie zaplacono' }}
     </p>
-    <form action="" method="post" style="padding: 0px 20px; text-align: left">
-        {{ dateTimeForm.hidden_tag() }}
+    <form id="time" action="" method="post" style="padding: 0px 20px; text-align: left">
+        {{ timeForm.hidden_tag() }}
         <p>
-            <b>{{ dateTimeForm.godzinaDostawy.label }}</b>
-            {{ dateTimeForm.godzinaDostawy(size=30,
-            value=zamowienie.przewidywanaGodzinaDostawy.time() if zamowienie.przewidywanaGodzinaDostawy is not none else '')}}
-            {{ dateTimeForm.submit()}}
+            <b>{{ timeForm.deliveryTime.label }}</b>
+            {{ timeForm.deliveryTime(size=30,
+            value=order.przewidywanaGodzinaDostawy.time() if order.przewidywanaGodzinaDostawy is not none else '')}}
+            {{ timeForm.submit()}}
         </p>
     </form>
     <p style="text-align: left; padding: 0px 20px;">
-        <b>Zrealizowane:</b> {{ 'Tak' if zamowienie.zrealizowana else 'Nie' }}
+        <b>Zrealizowane:</b> {{ 'Tak' if order.zrealizowana else 'Nie' }}
     </p>
     <p style="text-align: left; padding: 0px 20px;">
         <b>Paczki:</b>
     </p>
-    {% for paczka in zamowienie.paczki %}
+    {% for package in order.paczki %}
         <p style="text-align: left; padding: 0px 40px;">
-            <b>Paczka nr</b> {{ loop.index }}: <b>Waga:</b> {{ paczka.waga }} <b>Kod:</b> {{ paczka.kod if paczka.kod is not none else 'Brak' }}
-            <b>Data odbioru:</b> {{ paczka.dataOdbioru if paczka.dataOdbioru is not none else 'Paczka nie zostala jeszcze odebrana' }}
-            <b>Stan paczki:</b> {{ paczka.stanPaczki }}
+            <b>Paczka nr</b> {{ loop.index }}: <b>Waga:</b> {{ package.waga }} <b>Kod:</b> {{ package.kod if package.kod is not none else 'Brak' }}
+            <b>Data odbioru:</b> {{ package.dataOdbioru if package.dataOdbioru is not none else 'Paczka nie zostala jeszcze odebrana' }}
+            <b>Stan paczki:</b> {{ stateEnum(package.stanPaczki).name.replace('_', ' ') }}
         </p>
     {% endfor %}
-    {% if not zamowienie.zrealizowana %}
-        <form action="" method="post" style="padding: 0px 20px; text-align: left">
+    {% if not order.zrealizowana %}
+        <form id="finalize" action="" method="post" style="padding: 0px 20px; text-align: left">
             {{ finalizeForm.hidden_tag() }}
+            <b><p>Sfinalizowane: </p></b>
+            {{ finalizeForm.finalized }}
             {{ finalizeForm.submit() }}
         </form>
     {% endif %}

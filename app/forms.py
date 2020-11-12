@@ -10,17 +10,17 @@ from app.models import Osoba
 
 class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
-    imie = StringField('Imie', validators=[DataRequired()])
-    nazwisko = StringField('Nazwisko', validators=[DataRequired()])
-    nrTelefonu = StringField('nr Telefonu', validators=[DataRequired()])
+    name = StringField('Imie', validators=[DataRequired()])
+    surname= StringField('Nazwisko', validators=[DataRequired()])
+    phoneNumber = StringField('nr Telefonu', validators=[DataRequired()])
     pesel = StringField('PESEL', validators=[DataRequired()])
-    adres = StringField('adres', )
+    address = StringField('adres', )
     password = PasswordField('Haslo', validators=[DataRequired()])
     password2 = PasswordField('Powtorz Haslo', validators=[DataRequired(), EqualTo('password')])
     isKurier = BooleanField('Chce sie zarejestrowac jako kurier')
     submit = SubmitField('Zarejestruj')
 
-    def validate_nrTelefonu(self, phoneNumber):
+    def validate_phoneNumber(self, phoneNumber):
         if len(phoneNumber.data) > 12 or len(phoneNumber.data) < 9 or not phoneNumber.data.isdecimal():
             raise ValidationError('Wprowadz poprawny nr telefonu')
 
@@ -42,40 +42,41 @@ class LoginForm(FlaskForm):
 
 
 class OrderTakeForm(FlaskForm):
-    adresNadawcy = StringField('Adres nadawcy:', validators=[DataRequired()])
-    adresOdbiorcy = StringField('Adres odbiorcy:', validators=[DataRequired()])
-    dataDostawy = DateField('Data dostawy:', validators=[DataRequired()])
-    paczki = FieldList(StringField(), 'Paczki:')
+    senderAddress = StringField('Adres nadawcy:', validators=[DataRequired()])
+    recipientAddress = StringField('Adres odbiorcy:', validators=[DataRequired()])
+    deliveryDate = DateField('Data dostawy:', validators=[DataRequired()])
+    packages = FieldList(StringField(), 'Paczki:')
     submit = SubmitField('Zloz')
 
-    def validate_dataDostawy(self, data):
+    def validate_deliveryDate(self, data):
         if data.data < date.today():
             raise ValidationError('Data podana musi byc poxniejsza niz dzisiejsza')
 
 
 class OrderFormSenderAddress(FlaskForm):
-    adresNadawcy = StringField('Adres nadawcy:', validators=[DataRequired()])
+    senderAddress = StringField('Adres nadawcy:', validators=[DataRequired()])
     submit = SubmitField('Zmien')
 
 
 class OrderFormRecipientAddress(FlaskForm):
-    adresOdbiorcy = StringField('Adres odbiorcy:', validators=[DataRequired()])
+    recipientAddress = StringField('Adres odbiorcy:', validators=[DataRequired()])
     submit = SubmitField('Zmien')
 
 
 class OrderFormDate(FlaskForm):
-    dataDostawy = DateField('Data dostawy:', validators=[DataRequired()])
+    deliveryDate = DateField('Data dostawy:', validators=[DataRequired()])
     submit = SubmitField('Zmien')
 
-    def validate_dataDostawy(self, data):
+    def validate_deliveryDate(self, data):
         if data.data < date.today():
             raise ValidationError('Data podana musi byc poxniejsza niz dzisiejsza')
 
 
-class OrderFormDateTime(FlaskForm):
-    godzinaDostawy = TimeField('Przewidywana godzina dostawy:', validators=[DataRequired()])
+class OrderFormTime(FlaskForm):
+    deliveryTime = TimeField('Przewidywana godzina dostawy:', validators=[DataRequired()])
     submit = SubmitField('Zmien')
 
 
 class FinalizeOrderForm(FlaskForm):
+    finalized = RadioField('Dostarczono', validators=[DataRequired()], choices=[('y', "Tak"), ('n', 'Nie')])
     submit = SubmitField("Sfinalizuj")

@@ -5,20 +5,20 @@
     <form action="" method="post" style="padding: 0px 20px; text-align: left">
         {{ form.hidden_tag() }}
         <p>
-            {{ form.adresNadawcy.label }}<br>
-            {{ form.adresNadawcy(size=32, value=current_user.adres) }}
+            {{ form.senderAddress.label }}<br>
+            {{ form.senderAddress(size=32, value=current_user.adres) }}
         </p>
         <p>
-            {{ form.adresOdbiorcy.label }}<br>
-            {{ form.adresOdbiorcy(size=32) }}
+            {{ form.recipientAddress.label }}<br>
+            {{ form.recipientAddress(size=32) }}
         </p>
         <p>
-            {{ form.dataDostawy.label }}<br>
-            {{ form.dataDostawy(size=32) }}
+            {{ form.deliveryDate.label }}<br>
+            {{ form.deliveryDate(size=32) }}
         </p>
         <p>
-            {{ form.paczki.label }}<br>
-            {{ form.paczki(size=32) }}
+            {{ form.packages.label }}<br>
+            {{ form.packages(size=32) }}
         </p>
         <p>{{ form.submit() }}</p>
     </form>
@@ -32,17 +32,17 @@
             addPackage.index++;
             package = $('<li>');
             $('<label>').attr({
-                for: 'paczki-' + addPackage.index
+                for: 'packages-' + addPackage.index
             }).html("Paczka nr " + addPackage.index + ". Waga w kg:").appendTo(package);
             $('<input>').attr({
                 type: 'number',
                 min: '0',
                 step: 0.01,
-                id: 'paczki-' + addPackage.index ,
-                name: 'paczki-' + addPackage.index,
+                id: 'packages-' + addPackage.index ,
+                name: 'packages-' + addPackage.index,
                 required: true
             }).appendTo(package);
-            package.appendTo('#paczki');
+            package.appendTo('#packages');
         }
     </script>
 {% endblock %}
